@@ -5,21 +5,17 @@ import base64
 import os
 import sys
 import datetime
-#from datetime import timedelta
 import ast
 from bson.objectid import ObjectId
-#import pymongo
-
-
 import gridfs
+
 app = Flask(__name__)
 app.secret_key="chetan"
 
 def cf():    
     client = MongoClient('mongodb:client')
     db = client.mdb5
-    db.authenticate('myroot','mypawword')
-
+    db.authenticate('myroot','mypawword'
     return db
 
 
@@ -30,12 +26,8 @@ def index():
 
 
 @app.route('/register', methods=['POST','GET'])
-def register():
-    #global username
-    print("m in register")
-    #mydb = mydbf()
+def register():   
     mydb = cf()
-
 
     if request.method == 'POST':
         username = request.form['username']
@@ -70,15 +62,13 @@ def register():
             register_result = "users already there"
             return render_template('register.html', register_result=register_result)
 
-
         myrecord = {
             "username": username,
             "password": password,
             "groupname": groupname
         }
 
-        record_id = mydb.register.insert(myrecord)
-        print record_id
+        record_id = mydb.register.insert(myrecord)      
         return render_template('login.html')
     else:
         return render_template('register.html')
@@ -87,22 +77,14 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login():
-
-    t1 = datetime.datetime.now();
-
-    #username = session["username"]
-    print("m in login")
-
-    #mydb = mydbf()
+    t1 = datetime.datetime.now()   
     mydb = cf()
     login_result = ""
 
     if request.method == 'POST':
-
         username = request.form['username']
         password = request.form['password']
-        susername = str(username)
-        print(susername)
+        susername = str(username)       
         session["username"] = username
 
         t3 = datetime.datetime.now()
@@ -131,8 +113,7 @@ def login():
         else:
             login_result = "wrong credentials"
             return render_template('login.html', login_result=login_result)
-
-
+                    
     else:
         return render_template('login.html', login_result=login_result)
 
@@ -140,10 +121,8 @@ def login():
 
 @app.route('/upload', methods=['POST','GET'])
 def upload():
-
     size = 3000000
-    txtsize = 50
-    #mydb = mydbf()
+    txtsize = 50    
     mydb = cf()
     username = session["username"]
     print("m in upload")
@@ -156,8 +135,7 @@ def upload():
     fn = file1.filename
     sfn = str(fn)
     fn,ftp = sfn.split('.')
-    print("ftp",ftp)
-
+    
     # read in the txt/image.
     thedata = file1.read()
     if ftp == "txt":
@@ -182,8 +160,6 @@ def upload():
     if(cursor.count() >= 5):
         upload_result = "count reach max limit"
         return render_template("upload.html",upload_result=upload_result)
-
-
    
     current_ts = datetime.datetime.now()
     #store into db
@@ -204,26 +180,15 @@ def upload():
 
 @app.route('/filter', methods=['POST','GET'])
 def filter():
-
-    t0 = datetime.datetime.now()
-
-    #mydb = mydbf()
+    t0 = datetime.datetime.now()   
     mydb = cf()
     username = session["username"]
-    print("m in filter")
-
-    #if ask per user
-    print('username',username)
-
     viewuser = (request.form['viewuser'])
     if(viewuser == u''):
         viewuser = str(username)
-    print("viewuser",viewuser)
-
+    
     imgencodeddl = []
-
     t1 = datetime.datetime.now()
-
     if viewuser == "all":
         cursor = mydb.udata.find()
     else:
@@ -240,53 +205,34 @@ def filter():
         priority = document["priority"]
         upload_ts = document["upload_ts"]
         file_type = document["file_type"]
-
+                    
         img = user_data
         imgencoded = img
-
         imgencodeddl.append({str(imgencoded): [str(id),str(user_name),str(subject),str(priority),str(upload_ts),str(file_type)]})
-
-
     t4 = datetime.datetime.now()
     dr =  t4 - t3
     tt = t4 - t0
-
-
     return render_template('view.html', imgencodeddl=imgencodeddl, dt=dt, dr=dr, tt=tt)
 
 
-
-
 @app.route('/sort', methods=['POST','GET'])
-def sort():
-
-    #mydb = mydbf()
+def sort():   
     mydb = cf()
-    username = session["username"]
-    print("m in sort")
-    #sortc = list()
-    #sortc = request.form.getlist('sortc')
-    sortc = request.form['sortc']
-    print sortc
+    username = session["username"]    
+    sortc = request.form['sortc']    
     sorttype = str(request.form['sorttype'])
-    sorttypei = int(sorttype)
-    print("sortc",sortc)
-    print("sorttypei",sorttypei)
+    sorttypei = int(sorttype)    
     ssortc = str(sortc)
     sss = "'" +ssortc +"'"
-    print('sss:',sss)
-    
-    imgencodeddl = []
-
-    #mydb.comment.remove({"comment": {'$regex':'^group2'}})
+       
+    imgencodeddl = []    
     t1 = datetime.datetime.now()
 
     if (sorttypei == 1):
         cursor = mydb.udata.find({"user_name" : username}).sort([(ssortc, 1)])
     else:
         cursor = mydb.udata.find({"user_name": username}).sort([(ssortc, -1)])
-
-    #cursor = mydb.udata.find({"user_name": username}).sort([("priority", -1)])
+    
     t2 = datetime.datetime.now()
     dt = t2 - t1
     print('cursor', cursor.count())
@@ -299,12 +245,9 @@ def sort():
         priority = document["priority"]
         upload_ts = document["upload_ts"]
         file_type = document["file_type"]
-
-        print("id", id)
-        print("file_type", file_type)
+        
         img = user_data
-        imgencoded = img
-        # print('imgencoded',imgencoded)
+        imgencoded = img   
 
         imgencodeddl.append(
             {str(imgencoded): [str(id), str(user_name), str(subject), str(priority), str(upload_ts), str(file_type)]})
@@ -314,52 +257,33 @@ def sort():
 
 @app.route('/delete', methods=['POST','GET'])
 def delete():
-
-    #mydb = mydbf()
     mydb = cf()
     username = session["username"]
     susername = str(username)
-    print("m in delete")
-
-    rid = request.form['rid']
-    print('rid',rid)
-
-    
+    rid = request.form['rid']       
     mydb.udata.delete_one({'_id': ObjectId(rid)})
     return render_template("filter.html")
 
 
 @app.route('/search', methods=['POST','GET'])
 def search():
-
-    #mydb = mydbf()
     mydb = cf()
     username = session["username"]
-    print("m in search")
-
     search = request.form['search']
     searchc = request.form['searchc']
     searcho = request.form['searcho']
     ssearchc = str(searchc)
     ssearch = str(search)
     sss = "^" +ssearch
-    print('sss:',sss)
-    print("ssearchc",ssearchc)
-    print("ssearch",ssearch)
-
+   
     if ssearchc == "upload_ts":
         hr = int(search)
         print(hr)
         print(datetime.datetime.now())
-        at = datetime.datetime.now() + datetime.timedelta(hours=hr)
-        print ("at", at)
+        at = datetime.datetime.now() + datetime.timedelta(hours=hr)       
         ssearch = at
-    t1 = datetime.datetime.now()
-    #cursor = mydb.comments.find({"filev": {'$regex':'^Hani'}})
-    #db.restaurants.find({"grades.score": {"$gt": 30}})
-    if searcho == "eq":
-        #cursor = mydb.udata.find({"user_name" : username,ssearchc: {'$regex': sss}})
-        print("in ssearchc",ssearchc)
+    t1 = datetime.datetime.now()    
+    if searcho == "eq":        
         cursor = mydb.udata.find({"user_name": username, ssearchc: {'$regex': search}})
     elif searcho == "neq":
         cursor = mydb.udata.find({"user_name": username, ssearchc: {'$not': ssearch}})
@@ -374,15 +298,12 @@ def search():
     else:
         ssearchs,ssearche = ssearch.split('-')
         ssearchss = str(ssearchs)
-        ssearches = str(ssearche)
-        print("ssearchss",ssearchss)
-        print("ssearches",ssearches)
+        ssearches = str(ssearche)       
         cursor = mydb.udata.find({"user_name": username, ssearchc: {'$gte': ssearchss,'$lte': ssearches}})
     t2 = datetime.datetime.now()
     print("cursor.count()",cursor.count())
 
     imgencodeddl = []
-
     for document in cursor:
         id = document["_id"]
         user_name = document["user_name"]
@@ -399,33 +320,25 @@ def search():
 
     return render_template('view.html', imgencodeddl=imgencodeddl)
 
+                    
 @app.route('/dele', methods=['POST','GET'])
 def dele():
-
-    #mydb = mydbf()
     mydb = cf()
-    username = session["username"]
-    print("m in dele")
-
+    username = session["username"]   
     dele = request.form['dele']
     delec = request.form['delec']
     deleo = request.form['deleo']
     sdelec = str(delec)
     sdele = str(dele)
     sss = "^" +sdele
-    print('sss:',sss)
-    print("sdelec",sdelec)
-
+    
     dele1 = request.form['dele1']
     delec1 = request.form['delec1']
     deleo1 = request.form['deleo1']
     sdelec1 = str(delec1)
     sdele1 = str(dele1)
     sss1 = "^" + sdele1
-    print('sss1:', sss1)
-    print("sdelec1", sdelec1)
-
-
+   
     if delec == "upload_ts":
         hr = int(search)
         print(hr)
@@ -434,9 +347,7 @@ def dele():
         print ("at", at)
         sdele = at
 
-    t1 = datetime.datetime.now()
-    #cursor = mydb.comments.find({"filev": {'$regex':'^Hani'}})
-    #db.restaurants.find({"grades.score": {"$gt": 30}})
+    t1 = datetime.datetime.now()   
     if deleo == "eq2":
         mydb.udata.remove({"user_name" : username,sdelec: {'$eq': sdele}})
     elif deleo == "neq":
@@ -459,11 +370,9 @@ def dele():
         print("sdelees",sdelees)
         cursor = mydb.udata.remove({"user_name": username, sdelec: {'$gte': sdeless,'$lte': sdelees}})
     t2 = datetime.datetime.now()
-    #print("cursor.count()",cursor.count())
-
+    
     cursor = mydb.udata.find({"user_name": username})
     imgencodeddl = []
-
     for document in cursor:
         id = document["_id"]
         user_name = document["user_name"]
@@ -480,41 +389,28 @@ def dele():
 
     return render_template('view.html', imgencodeddl=imgencodeddl)
 
-@app.route('/final5', methods=['POST','GET'])
-def final5():
-    #global username
-    #mydb = mydbf()
-    mydb = cf()
-    username = session["username"]
-    #global fs
-    print("m in final5")
-    print('username',username)
-    newgroup = request.form['newgroup']
 
-    fs = GridFS(mydb)
-    
+@app.route('/final5', methods=['POST','GET'])
+def final5():   
+    mydb = cf()
+    username = session["username"]    
+    newgroup = request.form['newgroup']
+    fs = GridFS(mydb)    
     return render_template("login.html")
+                    
 
 @app.route('/final6', methods=['POST','GET'])
-def final6():
-    
+def final6():    
     mydb = cf()
     username = session["username"]
-    susername = str(username)
-    #global fs
-    print("m in final4")
-    print('username',username)
+    susername = str(username)    
     search = request.form['search']
     ssearch = str(search)
-    sss = "'^" +search +"'"
-    print('sss:',sss)
+    sss = "'^" +search +"'"   
 
     mydb.comment.remove({"comment": {'$regex':'^group2'}})
     return render_template("login.html")
     
-
-
-
 
 if __name__ == '__main__':    
     app.run()
